@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Duel Links Character Gallery</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #121212;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    h2 {
+      border-bottom: 1px solid #333;
+      padding-bottom: 5px;
+      margin-top: 40px;
+    }
+
+    .character-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 20px;
+    }
+
+    .character-card {
+      background-color: #1f1f1f;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+      box-shadow: 0 0 10px #000;
+      transition: transform 0.2s;
+    }
+
+    .character-card:hover {
+      transform: scale(1.05);
+    }
+
+    .character-card img {
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    .series-section {
+      margin-bottom: 60px;
+    }
+
+    .series-title {
+      color: #00ffff;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Duel Links Character Gallery</h1>
+  <div id="gallery"></div>
+
+  <script>
+    const charactersBySeries = {
+      "Yu-Gi-Oh! DM": ["Yami Yugi", "Seto Kaiba", "Joey Wheeler", "Téa Gardner", "Mai Valentine", "Yugi Muto", "Weevil Underwood", "Rex Raptor", "Mako Tsunami", "Yami Marik", "Yami Bakura", "Bandit Keith", "Ishizu Ishtar", "Odion", "Maximillion Pegasus", "Mokuba Kaiba", "Paradox Brothers", "Arkana", "Bonz", "Espa Roba", "Tristan Taylor", "Lumis & Umbra", "Duke Devlin", "Solomon Muto"],
+      "Yu-Gi-Oh! DSOD": ["Seto Kaiba (DSOD)", "Mokuba Kaiba (DSOD)", "Sera", "Aigami", "Scud", "Joey Wheeler (DSOD)", "Yugi Muto (DSOD)", "Téa Gardner (DSOD)", "Bakura (DSOD)"],
+      "Yu-Gi-Oh! GX": ["Jaden Yuki", "Zane Truesdale", "Aster Phoenix", "Jesse Anderson", "Chazz Princeton", "Alexis Rhodes", "Dr. Vellian Crowler", "Yubel", "Bastion Misawa", "Syrus Truesdale", "Tyranno Hassleberry", "Sartorius Kumar", "Jaden/Yubel", "Blair Flannigan", "Jim \"Crocodile\" Cook", "Axel Brodie", "Supreme King Jaden"],
+      "Yu-Gi-Oh! 5D's": ["Yusei Fudo", "Jack Atlas", "Crow Hogan", "Akiza Izinski", "Leo", "Luna", "Officer Tetsu Trudge", "Dark Signer Kalin Kessler", "Dark Signer Carly Carmine", "Dark Signer Rex Goodwin", "Carly Carmine", "Kalin Kessler", "Antinomy", "Primo", "Aporia", "Paradox", "Z-one"],
+      "Yu-Gi-Oh! ZEXAL": ["Yuma Tsukumo & Astral", "Bronk Stone", "Tori Meadows", "Reginald \"Shark\" Kastle", "Kite Tenjo", "Quattro", "Trey", "Anna Kaboom", "Rio Kastle", "Girag", "Quinton", "Alito", "Mizar", "Dumon", "Vector"],
+      "Yu-Gi-Oh! ARC-V": ["Yuya Sakaki", "Zuzu Boyle", "Gong Strong", "Sylvio Sawatari", "Declan Akaba", "Yuto", "Sora Perse", "Shay Obsidian", "Yugo", "Celina", "Yuri"],
+      "Yu-Gi-Oh! VRAINS": ["Playmaker & Ai", "Soulburner", "The Gore", "Blue Angel", "Varis", "Ghost Gal", "Spectre", "Akira Zaizen"],
+      "Yu-Gi-Oh! SEVENS": ["Yuga Ohdo", "Luke", "Gavin Sogetsu", "Romin Kassidy", "Mimi Imimi", "Roa Kassidy", "Nail Saionji", "Asana Matsuba", "Yuo Goha", "Yuka Goha"],
+      "Yu-Gi-Oh! GO RUSH!!": ["Yudias Velgear", "Yuhi Ohdo", "Yuamu Ohdo", "Zuwijo Zwil Velgear", "Maddox Sogetsu"]
+    };
+
+    const gallery = document.getElementById("gallery");
+
+    for (const series in charactersBySeries) {
+      const section = document.createElement("div");
+      section.className = "series-section";
+
+      const title = document.createElement("h2");
+      title.className = "series-title";
+      title.innerText = series;
+
+      const grid = document.createElement("div");
+      grid.className = "character-grid";
+
+      charactersBySeries[series].forEach(name => {
+        const card = document.createElement("div");
+        card.className = "character-card";
+
+        card.innerHTML = `
+          <img src="https://via.placeholder.com/150x200?text=${encodeURIComponent(name)}" alt="${name}">
+          <h3>${name}</h3>
+        `;
+
+        grid.appendChild(card);
+      });
+
+      section.appendChild(title);
+      section.appendChild(grid);
+      gallery.appendChild(section);
+    }
+  </script>
+</body>
+</html>
