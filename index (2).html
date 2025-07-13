@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Duel Links Deck Builder</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      font-size: 14px;
+    }
+    #results {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .card {
+      width: 120px;
+      text-align: center;
+    }
+    .card img {
+      width: 100px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border 0.2s;
+    }
+    .card img:hover {
+      border: 2px solid cyan;
+    }
+    .decks {
+      display: flex;
+      gap: 20px;
+      margin-top: 30px;
+    }
+    .deck-box {
+      flex: 1;
+      background-color: #1f1f1f;
+      padding: 10px;
+      border: 1px solid #333;
+      height: 300px;
+      overflow-y: auto;
+    }
+    .deck-box h3 {
+      margin-top: 0;
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    #preview {
+      position: absolute;
+      display: none;
+      background: white;
+      color: black;
+      border: 1px solid #ccc;
+      padding: 10px;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Duel Links Deck Builder</h1>
+  <input type="text" id="searchBox" placeholder="Search for cards...">
+  <button onclick="searchCards()">Search</button>
+  <button onclick="exportYDK()">Export .ydk</button>
+  <button onclick="clearDeck()">Clear Deck</button>
+
+  <div id="results"></div>
+
+  <div class="decks">
+    <div class="deck-box">
+      <h3>Main Deck (max 30)</h3>
+      <ul id="mainDeck"></ul>
+    </div>
+    <div class="deck-box">
+      <h3>Extra Deck (max 9)</h3>
+      <ul id="extraDeck"></ul>
+    </div>
+    <div class="deck-box">
+      <h3>Side Deck (max 6)</h3>
+      <ul id="sideDeck"></ul>
+    </div>
+  </div>
+
+  <div id="preview"></div>
+
+  <script>
+    const mainDeck = [];
+    const extraDeck = [];
+    const sideDeck = [];
+
+    async function searchCards() {
+      const query = document.getElementById("searchBox").value.trim();
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "Searching...";
+
+      try {
+        const response = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        resultsDiv.innerHTML = "";
+
+        data.data.slice(0, 20).forEach(card => {
+          const cardDiv = document.createElement("div");
+          cardDiv.className = "card";
+
+          const img = document.createElement("img");
+          img.src = card.card_images[0].image_url_small;
+          img.alt = card.name;
+          img.onclick = () => addToDeck(card);
+          img.onmouseover = (e) => showPreview(e, card);
+          img.onmouseout = hidePreview;
+
+          const name = document.createElement("div");
+          name.textContent = card.name;
+
+          cardDiv.appendChild(img);
+          cardDiv.appendChild(name);
+          resultsDiv.appendChild(cardDiv);
+        });
+      } catch (err) {
+        resultsDiv.innerHTML = "Card not found.";
+        console.error(err);
+      }
+    }
+
+    function addToDeck(card) {
+      const type = card.type.toLowerCase();
+      const copies = [...mainDeck, ...extraDeck, ...sideDeck].filter(c => c.id === card.id).length;
+      if (copies >= 3) return alert("Maximum 3 copies allowed.");
+
+      if (type.includes("fusion") || type.includes("synchro") || type.includes("xyz") || type.includes("link")) {
+        if (extraDeck.length >= 9) return alert("Extra Deck full.");
+        extraDeck.push(card);
+      } else if (sideDeck.length < 6 && confirm(`Add "${card.name}" to Side Deck? (Cancel = Main Deck)`)) {
+        sideDeck.push(card);
+      } else {
+        if (mainDeck.length >= 30) return alert("Main Deck full.");
+        mainDeck.push(card);
+      }
+
+      saveDecks();
+      renderDecks();
+    }
+
+    function renderDecks() {
+      renderList("mainDeck", mainDeck);
+      renderList("extraDeck", extraDeck);
+      renderList("sideDeck", sideDeck);
+    }
+
+    function renderList(id, deck) {
+      const ul = document.getElementById(id);
+      ul.innerHTML = "";
+      deck.forEach((card, index) => {
+        const li = document.createElement("li");
+        li.textContent = `${index + 1}. ${card.name}`;
+        ul.appendChild(li);
+      });
+    }
+
+    function showPreview(e, card) {
+      const preview = document.getElementById("preview");
+      preview.innerHTML = `<strong>${card.name}</strong><br><img src="${card.card_images[0].image_url}" width="150">`;
+      preview.style.left = e.pageX + 15 + "px";
+      preview.style.top = e.pageY + "px";
+      preview.style.display = "block";
+    }
+
+    function hidePreview() {
+      document.getElementById("preview").style.display = "none";
+    }
+
+    function exportYDK() {
+      let ydk = "#main\n";
+      ydk += mainDeck.map(c => c.id).join("\n") + "\n";
+      ydk += "#extra\n";
+      ydk += extraDeck.map(c => c.id).join("\n") + "\n";
+      ydk += "!side\n";
+      ydk += sideDeck.map(c => c.id).join("\n") + "\n";
+
+      const blob = new Blob([ydk], { type: "text/plain" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "deck.ydk";
+      link.click();
+    }
+
+    function saveDecks() {
+      localStorage.setItem("mainDeck", JSON.stringify(mainDeck));
+      localStorage.setItem("extraDeck", JSON.stringify(extraDeck));
+      localStorage.setItem("sideDeck", JSON.stringify(sideDeck));
+    }
+
+    function loadDecks() {
+      const m = JSON.parse(localStorage.getItem("mainDeck") || "[]");
+      const e = JSON.parse(localStorage.getItem("extraDeck") || "[]");
+      const s = JSON.parse(localStorage.getItem("sideDeck") || "[]");
+      mainDeck.push(...m);
+      extraDeck.push(...e);
+      sideDeck.push(...s);
+      renderDecks();
+    }
+
+    function clearDeck() {
+      if (!confirm("Clear all decks?")) return;
+      mainDeck.length = 0;
+      extraDeck.length = 0;
+      sideDeck.length = 0;
+      saveDecks();
+      renderDecks();
+    }
+
+    loadDecks();
+  </script>
+</body>
+</html>
